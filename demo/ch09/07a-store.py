@@ -1,0 +1,20 @@
+"""第09章·第七格A：把记忆存进进程内仓库（InMemorySaver）。"""
+import os
+
+from dotenv import load_dotenv
+
+load_dotenv()
+
+from langchain.chat_models import init_chat_model
+from langchain.agents import create_agent
+from langgraph.checkpoint.memory import InMemorySaver
+
+model = init_chat_model("deepseek-v4-flash",
+    api_key=os.getenv("DEEPSEEK_API_KEY"),
+    base_url=os.getenv("DEEPSEEK_BASE_URL"), temperature=0)
+
+agent = create_agent(model=model, tools=[], checkpointer=InMemorySaver())
+cfg = {"configurable": {"thread_id": "会话A"}}
+
+agent.invoke({"messages": [{"role": "user", "content": "记住：我叫小明。"}]}, config=cfg)
+print("已存好。现在仓库消息数 =", len(agent.get_state(cfg).values["messages"]))
